@@ -288,7 +288,18 @@ class LallassuWatchFaceView extends Ui.WatchFace {
 
 
         var infow = Calendar.info(Time.now(), Time.FORMAT_SHORT);
-        var weekStr = "w"+getWeekNumber(infow.year, infow.month, infow.day);
+        
+        // Calculate ISO 8601 week number (LLM was used to get the week number)
+        var moment = Time.now();
+        var jan1 = Time.Gregorian.moment({:year => infow.year, :month => 1, :day => 1, :hour => 0, :minute => 0, :second => 0});
+        var daysSinceJan1 = ((moment.value() - jan1.value()) / 86400).toNumber();
+        var jan1Info = Calendar.info(jan1, Time.FORMAT_SHORT);
+        
+        // Convert day_of_week from Sunday=1 to Monday=0 for ISO
+        var jan1DayOfWeek = (jan1Info.day_of_week + 5) % 7;
+        var weekNumber = ((daysSinceJan1 + jan1DayOfWeek) / 7).toNumber() + 1;
+        
+        var weekStr = "w" + weekNumber.toString();
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
         dc.drawText(37, y+45, Gfx.FONT_XTINY, weekStr, Gfx.TEXT_JUSTIFY_CENTER);
         dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
@@ -553,49 +564,6 @@ class LallassuWatchFaceView extends Ui.WatchFace {
             dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
             dc.drawText(x, y, columnFont, "--", justify);
         }
-    }
-
-    // Helper function to calculate week number
-    private function getWeekNumber(year as Lang.Number, month as Lang.Number, day as Lang.Number) as Lang.Number {
-        var dayOfYear = getDayOfYear(year, month, day);
-        var weekNumber = ((dayOfYear - 1) / 7).toNumber() + 1;
-
-        if (weekNumber < 1) {
-            weekNumber = 52;
-        } else if (weekNumber > 52) {
-            weekNumber = 1;
-        }
-
-        return weekNumber;
-    }
-
-    // Helper function to calculate day of year
-    private function getDayOfYear(year as Lang.Number, month as Lang.Number, day as Lang.Number) as Lang.Number {
-        var daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-        // Check for leap year
-        var isLeap = false;
-        if (year % 4 == 0) {
-            if (year % 100 == 0) {
-                if (year % 400 == 0) {
-                    isLeap = true;
-                }
-            } else {
-                isLeap = true;
-            }
-        }
-
-        if (isLeap) {
-            daysInMonth[2] = 29;
-        }
-
-        var dayOfYear = day;
-        for (var i = 1; i < month; i++) {
-            var x = dayOfYear;
-            dayOfYear = x + daysInMonth[i];
-        }
-
-        return dayOfYear;
     }
 }
 
