@@ -1,0 +1,135 @@
+#
+# SPDX-FileCopyrightText: 2017-2022 Cédric Dufour <http://cedric.dufour.name>
+# SPDX-FileCopyrightText: 2022 Wesley Schwengle <wesleys@opperschaap.net>
+#
+# SPDX-License-Identifier: Unlicense
+#
+## ConnectIQ resources
+include /etc/garmin-connectiq/Makefile.base
+
+## Help
+.PHONY: help
+help:
+	@echo 'Targets:'
+	@echo '  ciq-help    - display the build environment help'
+	@echo '  help        - display this help message'
+	@echo '  debug       - build the project (*.prg; including debug symbols)'
+	@echo '  release     - build the project (*.prg; excluding debug symbols)'
+	@echo '  iq          - package the project (*.iq)'
+	@echo '  run-debug   - launch the project in the simulator (debug version)'
+	@echo '  run-release - launch the project in the simulator (release version)'
+	@echo '  install     - install the project on your watch (requires DESTDIR to be set)'
+	@echo '  uninstall   - uninstall the project on your watch (requires DESTDIR to be set)'
+	@echo '  fit-view    - view the FIT-file'
+	@echo '  clean       - delete all build output'
+.DEFAULT_GOAL := help
+
+
+## Build
+OUTPUT_TEST := ./bin/${CIQ_DEVICE}-${MY_PROJECT}-${CIQ_API}.test.prg
+${OUTPUT_TEST}: ${MY_MANIFEST} ${MY_RESOURCES} ${MY_SOURCES} | ${CIQ_MONKEYC} ${CIQ_DEVKEY}
+	mkdir -p bin
+	${CIQ_MONKEYC} -w -l ${CIQ_TYPECHECK} \
+	  -o $@ \
+	  -d ${CIQ_DEVICE} \
+	  -y ${CIQ_DEVKEY} \
+	  -f ${MY_JUNGLES} \
+	  -t
+test: ${OUTPUT_TEST}
+
+# debug
+OUTPUT_DEBUG := ./bin/${CIQ_DEVICE}-${MY_PROJECT}-${CIQ_API}.debug.prg
+${OUTPUT_DEBUG}: ${MY_MANIFEST} ${MY_RESOURCES} ${MY_SOURCES} | ${CIQ_MONKEYC} ${CIQ_DEVKEY}
+	mkdir -p bin
+	${CIQ_MONKEYC} -w -l ${CIQ_TYPECHECK} \
+	  -o $@ \
+	  -d ${CIQ_DEVICE} \
+	  -y ${CIQ_DEVKEY} \
+	  -f ${MY_JUNGLES}
+debug: ${OUTPUT_DEBUG}
+
+# release
+OUTPUT_RELEASE := ./bin/${CIQ_DEVICE}-${MY_PROJECT}-${CIQ_API}.release.prg
+${OUTPUT_RELEASE}: ${MY_MANIFEST} ${MY_RESOURCES} ${MY_SOURCES} | ${CIQ_MONKEYC} ${CIQ_DEVKEY}
+	mkdir -p bin
+	${CIQ_MONKEYC} -w -l ${CIQ_TYPECHECK} -r \
+	  -o $@ \
+	  -d ${CIQ_DEVICE} \
+	  -y ${CIQ_DEVKEY} \
+	  -f ${MY_JUNGLES}
+release: ${OUTPUT_RELEASE}
+
+# IQ
+OUTPUT_IQ := ./bin/${MY_PROJECT}.iq
+${OUTPUT_IQ}: ${MY_MANIFEST} ${MY_RESOURCES} ${MY_SOURCES} | ${CIQ_MONKEYC} ${CIQ_DEVKEY}
+	mkdir -p bin
+	${CIQ_MONKEYC} -e -w -r \
+	  -o $@ \
+	  -y ${CIQ_DEVKEY} \
+	  -f ${MY_JUNGLES}
+iq: ${OUTPUT_IQ}
+
+## Simulator
+.PHONY: run-debug
+run-debug: ${OUTPUT_DEBUG} | ${CIQ_SIMULATOR} ${CIQ_MONKEYDO}
+	pkill ${CIQ_SIMULATOR} || true
+	${CIQ_SIMULATOR} | grep -v "Unable to connect to an ANT device; no devices available" & sleep 1
+	${CIQ_MONKEYDO} ${OUTPUT_DEBUG} ${CIQ_DEVICE}
+
+.PHONY: run-release
+run-release: ${OUTPUT_RELEASE} | ${CIQ_SIMULATOR} ${CIQ_MONKEYDO}
+	pkill ${CIQ_SIMULATOR} || true
+	${CIQ_SIMULATOR} & sleep 1
+	${CIQ_MONKEYDO} ${OUTPUT_RELEASE} ${CIQ_DEVICE}
+	pkill ${CIQ_SIMULATOR}
+
+## Test
+.PHONEY: test
+test: ${OUTPUT_TEST} | ${CIQ_SIMULATOR} ${CIQ_MONKEYDO}
+	export DISPLAY_OLD=${DISPLAY}
+	DISPLAY=:1 Xvfb ":1" -screen 0 1280x1024x24 &
+	pkill ${CIQ_SIMULATOR} || true
+	DISPLAY=:1 ${CIQ_SIMULATOR} 1>/dev/null & sleep 1
+	${CIQ_MONKEYDO} ${OUTPUT_TEST} ${CIQ_DEVICE} -t
+	pkill simulator
+	pkill Xvfb
+
+## FIT-file viewer
+.PHONY: fit-view
+fit-view: ${OUTPUT_IQ} ${CIQ_FITFILE} | ${CIQ_MONKEYGRAPH}
+	java -jar ${CIQ_MONKEYGRAPH}
+
+
+## (Un-)Install
+
+# mountpoint
+${DESTDIR}:
+	$(error Garmin device not found; DESTDIR=${DESTDIR})
+
+# install
+.PHONY: install
+install: ${OUTPUT_RELEASE} | ${DESTDIR}
+	@cp -v ${OUTPUT_RELEASE} ${DESTDIR}/${MY_PROJECT}.prg
+
+# uninstall
+.PHONY: uninstall
+uninstall: | ${DESTDIR}
+	@rm -fv ${DESTDIR}/${MY_PROJECT}.prg \
+	  ${DESTDIR}/SETTINGS/${MY_PROJECT}.SET \
+	  ${DESTDIR}/DATA/${MY_PROJECT}.STR \
+	  ${DESTDIR}/DATA/${MY_PROJECT}.IDX \
+	  ${DESTDIR}/DATA/${MY_PROJECT}.DAT \
+	  ${DESTDIR}/LOGS/${MY_PROJECT}.TXT \
+	  ${DESTDIR}/LOGS/${MY_PROJECT}.BAK
+
+
+## Clean
+.PHONY: clean
+clean:
+	if [ -f bin/.keep ]; then \
+		rm -rf bin ;\
+		mkdir bin ;\
+		touch bin/.keep ;\
+	else \
+		rm -rf bin;\
+	fi \

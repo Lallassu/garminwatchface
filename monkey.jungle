@@ -1,0 +1,14 @@
+project.manifest = manifest.xml
+
+# default paths
+sourcePath    = source
+resourcePath  = resources
+
+# per-device (optional; keep same here)
+fr255m.sourcePath   = source
+fr255m.resourcePath = resources
+
+# optional compiler settings
+# optimization = on
+# typecheck = strict
+
