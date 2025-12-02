@@ -27,6 +27,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     private var recoveryIcon;
     private var stepsIcon;
     private var stressIcon;
+    private var msgIcon;
     private var iconScale = 0.5;
     private var ui;
 
@@ -126,6 +127,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         setWindTxt();
         setBodyBatteryTxt();
         setWeatherTxt();
+        setNotification();
 
         batteryIcon = App.loadResource(Rez.Drawables.battery);
         caloriesIcon = App.loadResource(Rez.Drawables.calories);
@@ -134,6 +136,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         recoveryIcon = App.loadResource(Rez.Drawables.recovery);
         stepsIcon = App.loadResource(Rez.Drawables.steps);
         stressIcon = App.loadResource(Rez.Drawables.stress);
+        msgIcon = App.loadResource(Rez.Drawables.msg);
         ui = App.loadResource(Rez.Drawables.ui);
 
         WatchFace.initialize();
@@ -184,9 +187,10 @@ class LallassuWatchFaceView extends Ui.WatchFace {
             setBodyBatteryTxt();
             setWeatherTxt();
         }
+            setNotification();
         setHeartTxt();
 
-      
+
         //var t = new Gfx.AffineTransform();
         dc.drawBitmap(0,0, ui); //, {:transform => t});
         drawBattery(dc, centerX-(80/2), 7, 80, 21, 5);
@@ -206,6 +210,9 @@ class LallassuWatchFaceView extends Ui.WatchFace {
             if (i == 0) {
                 drawIcon(dc, heartIcon, offsetIconX, offsetIconY, iconScale);
                 draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT, heartTxt, heartColor, Gfx.FONT_TINY);
+                if (hasNotification) {
+                    drawIcon(dc, msgIcon, offsetX-75, offsetY+10, 0.5);
+                }
             } else if (i == 1) {
                 drawIcon(dc, stressIcon, offsetIconX, offsetIconY, iconScale);
                 draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT, stressTxt, stressColor, Gfx.FONT_TINY);
@@ -355,7 +362,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         }
         var perc = conditions.precipitationChance.format("%d");
         weatherTxt = perc + "% - "+ currentWeather[0];
-        weatherColor = currentWeather[1];
+        //weatherColor = currentWeather[1];
     }
 
     private function setStressTxt() as Void {
@@ -558,14 +565,20 @@ class LallassuWatchFaceView extends Ui.WatchFace {
             if (windSpeed > 10) {
                 windColor = Gfx.COLOR_RED;
             } else if (windSpeed > 5) {
-                windColor = 0xFFFF00; // Yellow
+                windColor = Gfx.COLOR_YELLOW; 
             } else {
                 windColor = Gfx.COLOR_GREEN;
             }
 
 
-            windTxt = bearing + " " + windSpeed.format("%02d") + " m/s";
+            windTxt = bearing + " " + windSpeed.format("%2d") + " m/s";
         }
+    }
+
+    private function setNotification() as Void {
+        var ds = System.getDeviceSettings();
+        hasNotification = (ds != null) && (ds.notificationCount != null) && (ds.notificationCount > 0);
+
     }
 
     private function setBodyBatteryTxt() as Void {

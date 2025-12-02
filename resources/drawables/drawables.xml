@@ -8,6 +8,7 @@
     <bitmap id="recovery" filename="recovery.png" />
     <bitmap id="steps" filename="steps.png" />
     <bitmap id="stress" filename="stress.png" />
+    <bitmap id="msg" filename="msg.png" />
     <bitmap id="ui" filename="ui.png" />
 </drawables>
 
