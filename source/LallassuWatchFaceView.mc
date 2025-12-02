@@ -14,11 +14,8 @@ using Toybox.Lang;
 
 class LallassuWatchFaceView extends Ui.WatchFace {
     private const timeColor = 0xFFFFFF;
-    private const columnFont = Gfx.FONT_TINY;
     private const WEATHER_INFO = {} as Lang.Dictionary;
 
-    private var lastUpdateTime = 0;
-    private var isAwake;
     private var width = 0;
     private var height = 0;
     private var centerX = 0; 
@@ -32,7 +29,34 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     private var stressIcon;
     private var iconScale = 0.5;
     private var ui;
-    private var currentWeather = {} as Lang.Dictionary;
+
+    // These are only fetched periodically, to reduce load
+    private var batteryTxt = "";
+    private var dateTxt = "";
+    private var weatherTxt = "";
+    private var stressTxt = "";
+    private var sunTxt = "";
+    private var tempTxt = "";
+    private var stepsTxt = "";
+    private var distTxt = "";
+    private var calsTxt = "";
+    private var recoveryTxt = "";
+    private var windTxt = "";
+    private var bodyBatteryTxt = "";
+    private var heartTxt = "";
+    private var hasNotification = false;
+
+    private var stressColor = Gfx.COLOR_WHITE;
+    private var recoveryColor = Gfx.COLOR_WHITE;
+    private var tempColor = Gfx.COLOR_WHITE;
+    private var windColor = Gfx.COLOR_WHITE;
+    private var bodyBatteryColor = Gfx.COLOR_WHITE;
+    private var weatherColor = Gfx.COLOR_WHITE;
+    private var stepsColor = Gfx.COLOR_WHITE;
+    private var heartColor = Gfx.COLOR_WHITE;
+    private var distColor = Gfx.COLOR_WHITE;
+    private var dateColor = Gfx.COLOR_WHITE;
+    private var sunColor = Gfx.COLOR_WHITE;
 
     function initialize() {
         WEATHER_INFO[0] = ["Clear", 0x87CEEB];
@@ -89,7 +113,19 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         WEATHER_INFO[51] = ["Ice snow", 0xF0F8FF];
         WEATHER_INFO[52] = ["Thin clouds", 0xCCCCCC];
         WEATHER_INFO[53] = ["Unknown", 0x333333];
-        setWeatherCondition();
+
+        // First update
+        setDateTxt();
+        setStressTxt();
+        setSunTxt();
+        setTempTxt();
+        setStepsTxt();
+        setDistTxt();
+        setCalsTxt();
+        setRecoveryTxt();
+        setWindTxt();
+        setBodyBatteryTxt();
+        setWeatherTxt();
 
         batteryIcon = App.loadResource(Rez.Drawables.battery);
         caloriesIcon = App.loadResource(Rez.Drawables.calories);
@@ -111,21 +147,17 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     }
 
     function onHide() as Void {
-        isAwake = false;
     }
 
     function onExitSleep() as Void {
-        isAwake = true;
         Ui.requestUpdate();
     }
 
     function onEnterSleep() as Void {
-        isAwake = false;
         Ui.requestUpdate();
     }
 
     function onShow() as Void {
-        isAwake = true;
     }
 
     function drawIcon(dc as Gfx.Dc, icon as App.ResourceType, x as Lang.Number, y as Lang.Number, scale as Lang.Number) as Void {
@@ -137,21 +169,30 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     function onUpdate(dc as Gfx.Dc) as Void {
         var now = Sys.getClockTime();
         var currentTime = now.hour * 3600 + now.min * 60 + now.sec;
-        lastUpdateTime = currentTime;
 
+        // rarely changed values are updated less often to save battery.
         if (currentTime % 10 == 0 ){
-            setWeatherCondition();
-            // TBD: Update other data periodically if needed and just draw
-            // last values.
+            setDateTxt();
+            setStressTxt();
+            setSunTxt();
+            setTempTxt();
+            setStepsTxt();
+            setDistTxt();
+            setCalsTxt();
+            setRecoveryTxt();
+            setWindTxt();
+            setBodyBatteryTxt();
+            setWeatherTxt();
         }
+        setHeartTxt();
 
       
-        var t = new Gfx.AffineTransform();
-        dc.drawBitmap2(0,0, ui, {:transform => t});
+        //var t = new Gfx.AffineTransform();
+        dc.drawBitmap(0,0, ui); //, {:transform => t});
         drawBattery(dc, centerX-(80/2), 7, 80, 21, 5);
         drawTime(dc, centerX-65, 11);
-        drawDate(dc, centerX, 260-25);
-        drawWeatherCondition(dc, centerX, 213);
+        draw(dc, centerX, 260-25, Gfx.TEXT_JUSTIFY_CENTER, dateTxt, dateColor, Gfx.FONT_XTINY);
+        draw(dc, centerX, 213, Gfx.TEXT_JUSTIFY_CENTER, weatherTxt, weatherColor, Gfx.FONT_XTINY);
 
         // Draws 2 columns with icons in the middle and values on the left or right 
         // and with same distance between each row.
@@ -164,17 +205,17 @@ class LallassuWatchFaceView extends Ui.WatchFace {
             // Left column
             if (i == 0) {
                 drawIcon(dc, heartIcon, offsetIconX, offsetIconY, iconScale);
-                drawHeartRate(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT);
+                draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT, heartTxt, heartColor, Gfx.FONT_TINY);
             } else if (i == 1) {
                 drawIcon(dc, stressIcon, offsetIconX, offsetIconY, iconScale);
-                drawStress(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT);
+                draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT, stressTxt, stressColor, Gfx.FONT_TINY);
             } else if (i == 2) {
                 drawIcon(dc, batteryIcon, offsetIconX, offsetIconY, iconScale);
-                drawBodyBattery(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT);
+                draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT, bodyBatteryTxt, bodyBatteryColor, Gfx.FONT_TINY);
             } else if (i == 3){
-                drawSunriseSunset(dc, centerX-10, offsetY+5, Gfx.TEXT_JUSTIFY_RIGHT);
+                draw(dc, centerX-10, offsetY+5, Gfx.TEXT_JUSTIFY_RIGHT, sunTxt, sunColor, Gfx.FONT_XTINY);
             } else if (i == 4) {
-                drawTemperature(dc, centerX-10, offsetY, Gfx.TEXT_JUSTIFY_RIGHT);
+                draw(dc, centerX-10, offsetY, Gfx.TEXT_JUSTIFY_RIGHT, tempTxt, tempColor, Gfx.FONT_TINY);
             }
 
             // Right column
@@ -182,39 +223,27 @@ class LallassuWatchFaceView extends Ui.WatchFace {
             offsetIconX = centerX + 10;
             if (i == 0) {
                 drawIcon(dc, stepsIcon, offsetIconX, offsetIconY, iconScale);
-                drawSteps(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_LEFT);
+                draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_LEFT, stepsTxt, stepsColor, Gfx.FONT_TINY);
             } else if (i == 1) {
                 drawIcon(dc, kmIcon, offsetIconX, offsetIconY, iconScale);
-                drawDistance(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_LEFT);
+                draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_LEFT, distTxt, distColor, Gfx.FONT_TINY);
             } else if (i == 2) {
                 drawIcon(dc, caloriesIcon, offsetIconX, offsetIconY, iconScale);
-                drawActiveCalories(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_LEFT);
+                draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_LEFT, calsTxt, Gfx.COLOR_YELLOW, Gfx.FONT_TINY);
             } else if (i == 3)  {
                 drawIcon(dc, recoveryIcon, offsetIconX, offsetIconY, iconScale);
-                drawRecoveryTime(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_LEFT);
+                draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_LEFT, recoveryTxt, recoveryColor, Gfx.FONT_TINY);
             } else if (i == 4)  {
-                drawWindSpeed(dc, offsetIconX, offsetY, Gfx.TEXT_JUSTIFY_LEFT);
+                draw(dc, offsetIconX, offsetY, Gfx.TEXT_JUSTIFY_LEFT, windTxt, windColor, Gfx.FONT_TINY);
             }
         }
     }
 
-    private function drawWeatherCondition(dc as Gfx.Dc, x  as Lang.Number, y  as Lang.Number) as Void {
-        if (currentWeather == null) {
-            return;
-        }
-        var font = Gfx.FONT_XTINY;
-        dc.setColor(currentWeather[1], Gfx.COLOR_TRANSPARENT);
-        dc.drawText(x, y, font, currentWeather[0], Gfx.TEXT_JUSTIFY_CENTER);
+    private function draw(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number, txt as Lang.String, color as Lang.Number, font as Gfx.FontType) as Void {
+        dc.setColor(color, Gfx.COLOR_TRANSPARENT);
+        dc.drawText(x, y, font, txt, justify);
     }
 
-    private function setWeatherCondition() {
-        var conditions = Weather.getCurrentConditions();
-        if (conditions == null) {
-            currentWeather = WEATHER_INFO[53]; // Unknown
-            return;
-        }
-        currentWeather = WEATHER_INFO[conditions.condition];
-    }  
 
     // Battery percentage
     private function drawBattery(dc as Gfx.Dc, x, y, w, h, border) as Void {
@@ -223,14 +252,19 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         var textColor = Gfx.COLOR_WHITE;
         var batteryColor = Gfx.COLOR_RED;
 
+        var txtPosX = centerX;
         if (battery > 70) {
             batteryColor = 0x00FF00;
         } else if (battery > 20) {
             batteryColor = 0xFFA500; 
         }
 
-        if (battery > 60) {
+        if (battery > 65) {
             textColor = Gfx.COLOR_BLACK;
+            txtPosX = centerX;
+        } else {
+            txtPosX = x+((battery/100.0) * w)+15;
+            textColor = Gfx.COLOR_WHITE;
         }
 
         dc.setColor(batteryColor, Gfx.COLOR_TRANSPARENT);
@@ -242,7 +276,8 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         dc.fillRoundedRectangle(x+2, y+2, ((battery / 100.0) * w)-2, h-3, border);
 
         dc.setColor(textColor, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(centerX, y, Gfx.FONT_XTINY, battery.toNumber().format("%d") + "%", Gfx.TEXT_JUSTIFY_CENTER);
+        //dc.drawText(centerX, y, Gfx.FONT_XTINY, battery.toNumber().format("%d") + "%", Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(txtPosX, y, Gfx.FONT_XTINY, battery.toNumber().format("%d") + "%", Gfx.TEXT_JUSTIFY_CENTER);
     }
 
     private function drawTime(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number) as Void {
@@ -307,67 +342,52 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     }
 
 
-    // Temperature + Feels Like
-    private function drawTemperature(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
+    private function setDateTxt() as Void {
+        var info = Calendar.info(Time.now(), Time.FORMAT_SHORT);
+        dateTxt = Lang.format("$1$-$2$-$3$", [info.year.format("%04u"), info.month.format("%02u"), info.day.format("%02u")]);
+    }
+
+    private function setWeatherTxt() as Void {
         var conditions = Weather.getCurrentConditions();
+        var currentWeather = WEATHER_INFO[53]; // Default to Unknown
+        if (conditions != null) {
+            currentWeather = WEATHER_INFO[conditions.condition];
+        }
+        var perc = conditions.precipitationChance.format("%d");
+        weatherTxt = perc + "% - "+ currentWeather[0];
+        weatherColor = currentWeather[1];
+    }
 
-        if (conditions != null && conditions.temperature != null) {
-            var temp = conditions.temperature;
-            var tempText = temp.format("%d") + "°";
-
-            // Add feels like if available
-            if (conditions has :feelsLikeTemperature && conditions.feelsLikeTemperature != null) {
-                var feelsLike = conditions.feelsLikeTemperature;
-                tempText = tempText + "/" + feelsLike.format("%d") + "°";
+    private function setStressTxt() as Void {
+        var stressHistory = SensorHistory.getStressHistory({});
+        stressTxt = "--";
+        stressColor = 0x808080;
+        if (stressHistory != null) {
+            var stressIter = stressHistory.next();
+            if (stressIter != null && stressIter.data != null) {
+                var stress = stressIter.data;
+                stressTxt = stress.format("%d");
+                if (stress < 25) {
+                    stressColor = Gfx.COLOR_GREEN;
+                } else if (stress < 50) {
+                    stressColor = Gfx.COLOR_YELLOW;
+                } else if (stress < 75) {
+                    stressColor = Gfx.COLOR_ORANGE;
+                } else {
+                    stressColor = Gfx.COLOR_RED;
+                }
             }
-
-            dc.setColor(0x00BFFF, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, tempText, justify);
-        } else {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "--°", justify);
         }
     }
 
-    // Wind speed in m/s
-    private function drawWindSpeed(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
-        var conditions = Weather.getCurrentConditions();
-
-        if (conditions != null && conditions.windSpeed != null) {
-            var windSpeed = conditions.windSpeed;
-            var bearing = "";
-            var wb = conditions.windBearing;
-            if (wb >= 0 && wb < 90) {
-                bearing = "N";
-            } else if (wb >= 90 && wb < 180) {
-                bearing = "E";
-            } else if (wb >= 180 && wb < 270) {
-                bearing = "S";
-            } else if (wb >= 270 && wb < 360) {
-                bearing = "W";
-            } else {
-                bearing = "";
-            }
-            dc.setColor(0x87CEEB, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, bearing + " " + windSpeed.format("%d") + " m/s", justify);
-        } else {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "-- m/s", justify);
-        }
-    }
-
-    // Sunrise/Sunset times
-    private function drawSunriseSunset(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
+    private function setSunTxt() as Void {
         var cc = Weather.getCurrentConditions();
+        sunTxt = "--/--";
         if (cc == null) {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "--/--", justify);
             return;
         }
 
-        var drawEmpty = true;
         var loc = cc.observationLocationPosition;
-
         if (loc == null) {
             var posInfo = Position.getInfo();
             if (posInfo != null && posInfo.position != null) {
@@ -388,93 +408,88 @@ class LallassuWatchFaceView extends Ui.WatchFace {
                 var sunriseStr = sunriseTime.hour.format("%02d") + ":" + sunriseTime.min.format("%02d");
                 var sunsetStr  = sunsetTime.hour.format("%02d") + ":" + sunsetTime.min.format("%02d");
 
-                dc.setColor(0xFFA500, Gfx.COLOR_TRANSPARENT);
-                dc.drawText(x, y, Gfx.FONT_XTINY, sunriseStr + "/" + sunsetStr, justify);
-                drawEmpty = false;
+                sunTxt = sunriseStr + "/" + sunsetStr;
             }
         }
+    }
 
-        if (drawEmpty) {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "--/--", justify);
+    private function setTempTxt() as Void {
+        var conditions = Weather.getCurrentConditions();
+
+        tempTxt = "--°";
+        if (conditions != null && conditions.temperature != null) {
+            var temp = conditions.temperature;
+            var tempText = temp.format("%d") + "°";
+
+            if (temp >= 25) {
+                tempColor = Gfx.COLOR_RED;
+            } else if (temp <= 0) {
+                tempColor = 0x00FFFF; 
+            } else {
+                tempColor = Gfx.COLOR_YELLOW;
+            }
+
+            // Add feels like if available
+            if (conditions has :feelsLikeTemperature && conditions.feelsLikeTemperature != null) {
+                var feelsLike = conditions.feelsLikeTemperature;
+                tempTxt = tempText + "/" + feelsLike.format("%d") + "°";
+            }
         }
     }
 
-    private function drawDate(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number) as Void {
-        var info = Calendar.info(Time.now(), Time.FORMAT_SHORT);
-
-        var dateText = Lang.format("$1$-$2$-$3$", [info.year.format("%04u"), info.month.format("%02u"), info.day.format("%02u")]);
-        dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(x, y, Gfx.FONT_XTINY, dateText, Gfx.TEXT_JUSTIFY_CENTER);
-    }
-
-    private function drawRecoveryTime(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
-        var info = Act.getInfo();
-
-        if (info != null && (info has :timeToRecovery) && info.timeToRecovery != null) {
-            var recoveryHours = info.timeToRecovery;
-            var text = recoveryHours.format("%d") + "h";
-            dc.setColor(0xADD8E6, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, text, justify);
-        } else {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "--", justify);
-        }
-    }
-
-    private function drawSteps(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
+    private function setStepsTxt() as Void {
         var activityInfo = Act.getInfo();
-
+        stepsTxt = "--";
         if (activityInfo.steps != null) {
-            var steps = activityInfo.steps;
-            dc.setColor(0x32CD32, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, steps.format("%d"), justify);
-        } else {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "--", justify);
+            stepsTxt = activityInfo.steps.format("%d");
         }
     }
 
-    private function drawHeartRate(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
+    private function setHeartTxt () as Void {
         var activityData = Activity.getActivityInfo();
-        var hrText = "--";
+        heartTxt = "--";
 
         if (activityData != null && activityData.currentHeartRate != null) {
-            hrText = activityData.currentHeartRate.toString();
+            if (activityData.currentHeartRate < 50) {
+                heartColor = Gfx.COLOR_GREEN; // Cyan for low heart rate
+            } else if (activityData.currentHeartRate > 100) {
+                heartColor = Gfx.COLOR_RED; // Red for high heart rate
+            } else {
+                heartColor = Gfx.COLOR_YELLOW;  // Green for normal heart rate
+            }
+            heartTxt = activityData.currentHeartRate.toString();
         }
-
-        dc.setColor(0xFF6B6B, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(x, y, columnFont, hrText, justify);
     }
 
-    private function drawActiveCalories(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
+    private function setDistTxt() as Void {
+        var activityInfo = Act.getInfo();
+
+        if (activityInfo.distance != null) {
+            var distance = activityInfo.distance;
+            var distanceKm = distance / 100000.0; // Convert cm to km
+            distTxt = distanceKm.format("%.2f") + "km";
+        }
+    }
+
+    private function setCalsTxt() as Void {
         var actInfo = Act.getInfo();
+        calsTxt = "--";
 
         if (actInfo == null || actInfo.calories == null) {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "--", justify);
             return;
         }
 
-        //NOTE: Some LLM generated calculation as we cannot get active calories directly
-
         var totalCalories = actInfo.calories as Lang.Number;
 
-        // Get user profile for BMR estimation
         var profile = UserProfile.getProfile();
         if (profile == null ||
             profile.weight == null ||
             profile.height == null ||
             profile.birthYear == null ||
             profile.gender == null) {
-
-            // Fallback: show total calories if we can't estimate resting
-            dc.setColor(0xFF8C00, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, totalCalories.format("%d"), justify);
             return;
         }
 
-        // Time-of-day: minutes since midnight
         var now = Time.now();
         var dateInfo = Time.Gregorian.info(now, Time.FORMAT_SHORT);
         var minutesToday = dateInfo.hour * 60 + dateInfo.min;
@@ -502,67 +517,75 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         }
 
         var activeInt = activeCalories.toNumber();
-
-        dc.setColor(0xFF8C00, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(x, y, columnFont, activeInt.format("%d"), justify);
+        calsTxt = activeInt.format("%d");
     }
 
-    private function drawDistance(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
-        var activityInfo = Act.getInfo();
-
-        if (activityInfo.distance != null) {
-            var distance = activityInfo.distance;
-            var distanceKm = distance / 100000.0; // Convert cm to km
-            dc.setColor(0x00CED1, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, distanceKm.format("%.0f") + "km", justify);
-        } else {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "--", justify);
-        }
-    }
-
-    private function drawStress(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
-        var stressHistory = SensorHistory.getStressHistory({});
-
-        if (stressHistory != null) {
-            var stressIter = stressHistory.next();
-            if (stressIter != null && stressIter.data != null) {
-                var stress = stressIter.data;
-                dc.setColor(0xDA70D6, Gfx.COLOR_TRANSPARENT);
-                dc.drawText(x, y, columnFont, stress.format("%d"), justify);
+    private function setRecoveryTxt() as Void {
+        var info = Act.getInfo();
+        recoveryTxt = "--";
+        if (info != null && (info has :timeToRecovery) && info.timeToRecovery != null) {
+            var recoveryHours = info.timeToRecovery;
+            if (recoveryHours < 5) {
+                recoveryColor = Gfx.COLOR_GREEN;
+            } else if (recoveryHours < 10) {
+                recoveryColor = 0xFFFF00; // Yellow
             } else {
-                dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-                dc.drawText(x, y, columnFont, "--", justify);
+                recoveryColor = Gfx.COLOR_RED;
             }
-        } else {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "--", justify);
+            recoveryTxt = recoveryHours.format("%d") + "h";
         }
     }
 
-    private function drawBodyBattery(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number, justify as Lang.Number) as Void {
+    private function setWindTxt() as Void {
+        var conditions = Weather.getCurrentConditions();
+        windTxt = "-- m/s";
+        if (conditions != null && conditions.windSpeed != null) {
+            var windSpeed = conditions.windSpeed;
+            var bearing = "";
+            var wb = conditions.windBearing;
+            if (wb >= 0 && wb < 90) {
+                bearing = "N";
+            } else if (wb >= 90 && wb < 180) {
+                bearing = "E";
+            } else if (wb >= 180 && wb < 270) {
+                bearing = "S";
+            } else if (wb >= 270 && wb < 360) {
+                bearing = "W";
+            } else {
+                bearing = "";
+            }
+
+            if (windSpeed > 10) {
+                windColor = Gfx.COLOR_RED;
+            } else if (windSpeed > 5) {
+                windColor = 0xFFFF00; // Yellow
+            } else {
+                windColor = Gfx.COLOR_GREEN;
+            }
+
+
+            windTxt = bearing + " " + windSpeed.format("%02d") + " m/s";
+        }
+    }
+
+    private function setBodyBatteryTxt() as Void {
         var bbHistory = SensorHistory.getBodyBatteryHistory({});
+        bodyBatteryTxt = "--";
+
         if (bbHistory != null) {
             var bbIter = bbHistory.next();
             if (bbIter != null && bbIter.data != null) {
                 var bodyBattery = bbIter.data;
-                var bbColor = Gfx.COLOR_RED;
-
-                if (bodyBattery > 70) {
-                    bbColor = Gfx.COLOR_GREEN;
-                } else if (bodyBattery > 30) {
-                    bbColor = 0xFFFF00; 
+                if (bodyBattery < 20) {
+                    bodyBatteryColor = Gfx.COLOR_RED;
+                } else if (bodyBattery < 50) {
+                    bodyBatteryColor = Gfx.COLOR_YELLOW;
+                } else {
+                    bodyBatteryColor = Gfx.COLOR_GREEN;
                 }
 
-                dc.setColor(bbColor, Gfx.COLOR_TRANSPARENT);
-                dc.drawText(x, y, columnFont, bodyBattery.format("%d"), justify);
-            } else {
-                dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-                dc.drawText(x, y, columnFont, "--", justify);
+                bodyBatteryTxt = bodyBattery.format("%d");
             }
-        } else {
-            dc.setColor(0x808080, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(x, y, columnFont, "--", justify);
         }
     }
 }
