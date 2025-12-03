@@ -186,8 +186,8 @@ class LallassuWatchFaceView extends Ui.WatchFace {
             setWindTxt();
             setBodyBatteryTxt();
             setWeatherTxt();
-        }
             setNotification();
+        }
         setHeartTxt();
 
 
@@ -479,52 +479,27 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     }
 
     private function setCalsTxt() as Void {
-        var actInfo = Act.getInfo();
         calsTxt = "--";
-
-        if (actInfo == null || actInfo.calories == null) {
-            return;
-        }
-
-        var totalCalories = actInfo.calories as Lang.Number;
-
+        var today = Time.Gregorian.info(Time.now(), Time.FORMAT_MEDIUM);		
         var profile = UserProfile.getProfile();
-        if (profile == null ||
-            profile.weight == null ||
-            profile.height == null ||
-            profile.birthYear == null ||
-            profile.gender == null) {
-            return;
+        var age    = today.year - profile.birthYear;
+        var weight = profile.weight / 1000.0;
+        var restCalories = 0.0;
+        var activeCalories = 0.0;
+        var actInfo = Act.getInfo();
+        var curCalories = actInfo.calories;
+
+        if (profile.gender == profile.GENDER_MALE) {
+            restCalories = 5.2 - 6.116*age + 7.628*profile.height + 12.2*weight;
+        } else {
+            restCalories = -197.6 - 6.116*age + 7.628*profile.height + 12.2*weight;
         }
-
-        var now = Time.now();
-        var dateInfo = Time.Gregorian.info(now, Time.FORMAT_SHORT);
-        var minutesToday = dateInfo.hour * 60 + dateInfo.min;
-
-        var age = dateInfo.year - profile.birthYear;
-
-        // Mifflin–St Jeor BMR (weight in grams, height in cm)
-        // BMR = 10*kg + 6.25*cm - 5*age + s
-        // weight(kg) = weight(g) / 1000
-        var bmr = (10.0 / 1000.0) * profile.weight +
-            6.25 * profile.height -
-            5.0 * age +
-            ((profile.gender == UserProfile.GENDER_MALE) ? 5.0 : -161.0);
-
-        // Estimate resting calories for a full day (sedentary factor 1.2)
-        var nonActiveDay = (bmr * 1.2).toFloat();
-
-        // Resting calories so far today
-        var nonActiveSoFar = nonActiveDay * minutesToday / (24.0 * 60.0);
-
-        // Active calories ≈ total - resting
-        var activeCalories = totalCalories.toFloat() - nonActiveSoFar;
+        restCalories   = Math.round((today.hour*60+today.min) * restCalories / 1440 ).toNumber();
+        activeCalories = curCalories - restCalories;
         if (activeCalories < 0) {
             activeCalories = 0;
         }
-
-        var activeInt = activeCalories.toNumber();
-        calsTxt = activeInt.format("%d");
+        calsTxt = activeCalories.format("%d");
     }
 
     private function setRecoveryTxt() as Void {
