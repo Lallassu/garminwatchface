@@ -20,6 +20,8 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     private var height = 0;
     private var centerX = 0; 
     private var centerY = 0;
+    private var scale = 1.0; // Scale factor for layout (1.0 for 260x260, ~0.838 for 218x218)
+    private var isFr255sm = false; // Track if we're on the smaller screen
     private var batteryIcon;
     private var caloriesIcon;
     private var heartIcon;
@@ -147,6 +149,9 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         height = dc.getHeight();
         centerX = width / 2;
         centerY = height / 2;
+        // Calculate scale factor based on screen width (260 is the base size for fr255m)
+        scale = width / 260.0;
+        isFr255sm = (width == 218);
     }
 
     function onHide() as Void {
@@ -167,6 +172,11 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         var t = new Gfx.AffineTransform();
         t.scale(scale, scale);
         dc.drawBitmap2(x, y, icon, {:transform => t});
+    }
+
+    // Helper function to scale coordinates based on screen size
+    private function s(value as Lang.Number) as Lang.Number {
+        return (value * scale).toNumber();
     }
 
     function onUpdate(dc as Gfx.Dc) as Void {
@@ -193,25 +203,33 @@ class LallassuWatchFaceView extends Ui.WatchFace {
 
         //var t = new Gfx.AffineTransform();
         dc.drawBitmap(0,0, ui); //, {:transform => t});
-        drawBattery(dc, centerX-(80/2), 7, 80, 21, 5);
-        drawTime(dc, centerX-65, 11);
-        draw(dc, centerX, 260-25, Gfx.TEXT_JUSTIFY_CENTER, dateTxt, dateColor, Gfx.FONT_XTINY);
-        draw(dc, centerX, 213, Gfx.TEXT_JUSTIFY_CENTER, weatherTxt, weatherColor, Gfx.FONT_XTINY);
+        
+        // Battery - percentage text needs to be 1 pixel higher on sm
+        //var batteryYOffset = isFr255sm ? s(7) - 2 : s(7);
+        drawBattery(dc, centerX-s(40), s(7), s(80), s(21), s(5));
+        
+        drawTime(dc, centerX-s(65), s(11));
+        
+        // Date - push up 1 pixel on sm version
+        var dateYOffset = isFr255sm ? height-s(25) - 2 : height-s(25);
+        draw(dc, centerX, dateYOffset, Gfx.TEXT_JUSTIFY_CENTER, dateTxt, dateColor, Gfx.FONT_XTINY);
+        
+        draw(dc, centerX, s(213), Gfx.TEXT_JUSTIFY_CENTER, weatherTxt, weatherColor, Gfx.FONT_XTINY);
 
         // Draws 2 columns with icons in the middle and values on the left or right 
         // and with same distance between each row.
-        var iconScale = 0.50;
+        var iconScale = 0.50 * scale;
         for (var i = 0; i < 5; i++) {
-            var offsetY = 85 + (i * 25);
-            var offsetX = centerX - 40;
-            var offsetIconX = centerX - 30;
-            var offsetIconY = offsetY + 6;
+            var offsetY = s(85 + (i * 25));
+            var offsetX = centerX - s(40);
+            var offsetIconX = centerX - s(30);
+            var offsetIconY = offsetY + s(6);
             // Left column
             if (i == 0) {
                 drawIcon(dc, heartIcon, offsetIconX, offsetIconY, iconScale);
                 draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT, heartTxt, heartColor, Gfx.FONT_TINY);
                 if (hasNotification) {
-                    drawIcon(dc, msgIcon, offsetX-75, offsetY+10, 0.5);
+                    drawIcon(dc, msgIcon, offsetX-s(75), offsetY+s(10), 0.5 * scale);
                 }
             } else if (i == 1) {
                 drawIcon(dc, stressIcon, offsetIconX, offsetIconY, iconScale);
@@ -220,14 +238,14 @@ class LallassuWatchFaceView extends Ui.WatchFace {
                 drawIcon(dc, batteryIcon, offsetIconX, offsetIconY, iconScale);
                 draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_RIGHT, bodyBatteryTxt, bodyBatteryColor, Gfx.FONT_TINY);
             } else if (i == 3){
-                draw(dc, centerX-10, offsetY+5, Gfx.TEXT_JUSTIFY_RIGHT, sunTxt, sunColor, Gfx.FONT_XTINY);
+                draw(dc, centerX-s(10), offsetY+s(5), Gfx.TEXT_JUSTIFY_RIGHT, sunTxt, sunColor, Gfx.FONT_XTINY);
             } else if (i == 4) {
-                draw(dc, centerX-10, offsetY, Gfx.TEXT_JUSTIFY_RIGHT, tempTxt, tempColor, Gfx.FONT_TINY);
+                draw(dc, centerX-s(10), offsetY, Gfx.TEXT_JUSTIFY_RIGHT, tempTxt, tempColor, Gfx.FONT_TINY);
             }
 
             // Right column
-            offsetX = centerX + 40;
-            offsetIconX = centerX + 10;
+            offsetX = centerX + s(40);
+            offsetIconX = centerX + s(10);
             if (i == 0) {
                 drawIcon(dc, stepsIcon, offsetIconX, offsetIconY, iconScale);
                 draw(dc, offsetX, offsetY, Gfx.TEXT_JUSTIFY_LEFT, stepsTxt, stepsColor, Gfx.FONT_TINY);
@@ -270,7 +288,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
             textColor = Gfx.COLOR_BLACK;
             txtPosX = centerX;
         } else {
-            txtPosX = x+((battery/100.0) * w)+15;
+            txtPosX = x+((battery/100.0) * w)+s(15);
             textColor = Gfx.COLOR_WHITE;
         }
 
@@ -284,7 +302,9 @@ class LallassuWatchFaceView extends Ui.WatchFace {
 
         dc.setColor(textColor, Gfx.COLOR_TRANSPARENT);
         //dc.drawText(centerX, y, Gfx.FONT_XTINY, battery.toNumber().format("%d") + "%", Gfx.TEXT_JUSTIFY_CENTER);
-        dc.drawText(txtPosX, y, Gfx.FONT_XTINY, battery.toNumber().format("%d") + "%", Gfx.TEXT_JUSTIFY_CENTER);
+        
+        var offsetY = isFr255sm ? 2 : 0;
+        dc.drawText(txtPosX, y-offsetY, Gfx.FONT_XTINY, battery.toNumber().format("%d") + "%", Gfx.TEXT_JUSTIFY_CENTER);
     }
 
     private function drawTime(dc as Gfx.Dc, x as Lang.Number, y as Lang.Number) as Void {
@@ -299,34 +319,35 @@ class LallassuWatchFaceView extends Ui.WatchFace {
 
         // Draw main time (HH:MM) - large font
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(centerX-47, y-3, Gfx.FONT_NUMBER_HOT, hourString, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX-s(47), y-s(3), Gfx.FONT_NUMBER_HOT, hourString, Gfx.TEXT_JUSTIFY_CENTER);
         dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(centerX-45, y, Gfx.FONT_NUMBER_HOT, hourString, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX-s(45), y, Gfx.FONT_NUMBER_HOT, hourString, Gfx.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(centerX-2, y+22, Gfx.FONT_LARGE, ":", Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX-s(2), y+s(22), Gfx.FONT_LARGE, ":", Gfx.TEXT_JUSTIFY_CENTER);
         dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(centerX, y+25, Gfx.FONT_LARGE, ":", Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX, y+s(25), Gfx.FONT_LARGE, ":", Gfx.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(centerX+45, y-3, Gfx.FONT_NUMBER_HOT, minutString, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX+s(45), y-s(3), Gfx.FONT_NUMBER_HOT, minutString, Gfx.TEXT_JUSTIFY_CENTER);
         dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(centerX+47, y, Gfx.FONT_NUMBER_HOT, minutString, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX+s(47), y, Gfx.FONT_NUMBER_HOT, minutString, Gfx.TEXT_JUSTIFY_CENTER);
 
         // Draw seconds below time (always show, but update respects battery settings)
         var secondsStr = seconds.format("%02d");
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(x+165, y+45, Gfx.FONT_TINY, secondsStr, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(x+s(165), y+s(45), Gfx.FONT_TINY, secondsStr, Gfx.TEXT_JUSTIFY_CENTER);
         dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(x+167, y+48, Gfx.FONT_TINY, secondsStr, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(x+s(167), y+s(48), Gfx.FONT_TINY, secondsStr, Gfx.TEXT_JUSTIFY_CENTER);
 
 
-        // Day
+        // Day - push down 1 pixel on sm version
         var info = Calendar.info(Time.now(), Time.FORMAT_MEDIUM);
+        var dayYOffset = isFr255sm ? 1 : 0;
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(35, y+58, Gfx.FONT_XTINY, info.day_of_week, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(s(35), y+s(58)+dayYOffset, Gfx.FONT_XTINY, info.day_of_week, Gfx.TEXT_JUSTIFY_CENTER);
         dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(33, y+55, Gfx.FONT_XTINY, info.day_of_week, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(s(33), y+s(55)+dayYOffset, Gfx.FONT_XTINY, info.day_of_week, Gfx.TEXT_JUSTIFY_CENTER);
 
 
         var infow = Calendar.info(Time.now(), Time.FORMAT_SHORT);
@@ -343,9 +364,9 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         
         var weekStr = "w" + weekNumber.toString();
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(37, y+45, Gfx.FONT_XTINY, weekStr, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(s(37), y+s(45), Gfx.FONT_XTINY, weekStr, Gfx.TEXT_JUSTIFY_CENTER);
         dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(35, y+42, Gfx.FONT_XTINY, weekStr, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(s(35), y+s(42), Gfx.FONT_XTINY, weekStr, Gfx.TEXT_JUSTIFY_CENTER);
     }
 
 

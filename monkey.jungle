@@ -4,9 +4,9 @@ project.manifest = manifest.xml
 sourcePath    = source
 resourcePath  = resources
 
-# per-device (optional; keep same here)
-fr255m.sourcePath   = source
-fr255m.resourcePath = resources
+# per-device resource paths
+fr255m.resourcePath  = resources-fr255m
+fr255sm.resourcePath = resources-fr255sm
 
 # optional compiler settings
 # optimization = on

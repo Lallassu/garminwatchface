@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<drawables>
+    <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
+    <bitmap id="battery" filename="battery.png" />
+    <bitmap id="calories" filename="calories.png" />
+    <bitmap id="heart" filename="heart.png" />
+    <bitmap id="km" filename="km.png" />
+    <bitmap id="recovery" filename="recovery.png" />
+    <bitmap id="steps" filename="steps.png" />
+    <bitmap id="stress" filename="stress.png" />
+    <bitmap id="msg" filename="msg.png" />
+    <bitmap id="ui" filename="ui-fr255sm.png" />
+</drawables>
