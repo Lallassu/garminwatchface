@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<properties>
+    <property id="Theme" type="number">0</property>
+    <property id="TextColor" type="number">0</property>
+</properties>

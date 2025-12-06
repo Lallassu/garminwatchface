@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<properties>
+    <property id="BackgroundColor" type="number">1</property>
+    <property id="IconColor" type="number">2</property>
+    <property id="TextColor" type="number">3</property>
+</properties>

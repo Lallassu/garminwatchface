@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
+    
+    <!-- Original icons - used for all themes with runtime tinting -->
+    <bitmap id="battery" filename="battery.png" />
+    <bitmap id="calories" filename="calories.png" />
+    <bitmap id="heart" filename="heart.png" />
+    <bitmap id="km" filename="km.png" />
+    <bitmap id="recovery" filename="recovery.png" />
+    <bitmap id="steps" filename="steps.png" />
+    <bitmap id="stress" filename="stress.png" />
+    <bitmap id="msg" filename="msg.png" />
+    
+    <!-- Transparent UI overlay - used for all themes with backgroundColor underneath -->
+    <bitmap id="ui" filename="ui-fr255sm.png" />
+</drawables>
+
+<drawables>
+    <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
     <bitmap id="battery" filename="battery.png" />
     <bitmap id="calories" filename="calories.png" />
     <bitmap id="heart" filename="heart.png" />
@@ -10,4 +27,89 @@
     <bitmap id="stress" filename="stress.png" />
     <bitmap id="msg" filename="msg.png" />
     <bitmap id="ui" filename="ui-fr255sm.png" />
+    
+    <!-- Themed Icons -->
+    <bitmap id="battery_oceanbreeze" filename="battery-fr255sm_oceanbreeze.png" />
+    <bitmap id="battery_forestwalk" filename="battery-fr255sm_forestwalk.png" />
+    <bitmap id="battery_sunsetglow" filename="battery-fr255sm_sunsetglow.png" />
+    <bitmap id="battery_royalpurple" filename="battery-fr255sm_royalpurple.png" />
+    <bitmap id="battery_goldenhour" filename="battery-fr255sm_goldenhour.png" />
+    <bitmap id="battery_arctice" filename="battery-fr255sm_arctice.png" />
+    <bitmap id="battery_emeralddream" filename="battery-fr255sm_emeralddream.png" />
+    <bitmap id="battery_rubyfire" filename="battery-fr255sm_rubyfire.png" />
+    <bitmap id="battery_midnightsteel" filename="battery-fr255sm_midnightsteel.png" />
+    <bitmap id="calories_oceanbreeze" filename="calories-fr255sm_oceanbreeze.png" />
+    <bitmap id="calories_forestwalk" filename="calories-fr255sm_forestwalk.png" />
+    <bitmap id="calories_sunsetglow" filename="calories-fr255sm_sunsetglow.png" />
+    <bitmap id="calories_royalpurple" filename="calories-fr255sm_royalpurple.png" />
+    <bitmap id="calories_goldenhour" filename="calories-fr255sm_goldenhour.png" />
+    <bitmap id="calories_arctice" filename="calories-fr255sm_arctice.png" />
+    <bitmap id="calories_emeralddream" filename="calories-fr255sm_emeralddream.png" />
+    <bitmap id="calories_rubyfire" filename="calories-fr255sm_rubyfire.png" />
+    <bitmap id="calories_midnightsteel" filename="calories-fr255sm_midnightsteel.png" />
+    <bitmap id="heart_oceanbreeze" filename="heart-fr255sm_oceanbreeze.png" />
+    <bitmap id="heart_forestwalk" filename="heart-fr255sm_forestwalk.png" />
+    <bitmap id="heart_sunsetglow" filename="heart-fr255sm_sunsetglow.png" />
+    <bitmap id="heart_royalpurple" filename="heart-fr255sm_royalpurple.png" />
+    <bitmap id="heart_goldenhour" filename="heart-fr255sm_goldenhour.png" />
+    <bitmap id="heart_arctice" filename="heart-fr255sm_arctice.png" />
+    <bitmap id="heart_emeralddream" filename="heart-fr255sm_emeralddream.png" />
+    <bitmap id="heart_rubyfire" filename="heart-fr255sm_rubyfire.png" />
+    <bitmap id="heart_midnightsteel" filename="heart-fr255sm_midnightsteel.png" />
+    <bitmap id="km_oceanbreeze" filename="km-fr255sm_oceanbreeze.png" />
+    <bitmap id="km_forestwalk" filename="km-fr255sm_forestwalk.png" />
+    <bitmap id="km_sunsetglow" filename="km-fr255sm_sunsetglow.png" />
+    <bitmap id="km_royalpurple" filename="km-fr255sm_royalpurple.png" />
+    <bitmap id="km_goldenhour" filename="km-fr255sm_goldenhour.png" />
+    <bitmap id="km_arctice" filename="km-fr255sm_arctice.png" />
+    <bitmap id="km_emeralddream" filename="km-fr255sm_emeralddream.png" />
+    <bitmap id="km_rubyfire" filename="km-fr255sm_rubyfire.png" />
+    <bitmap id="km_midnightsteel" filename="km-fr255sm_midnightsteel.png" />
+    <bitmap id="recovery_oceanbreeze" filename="recovery-fr255sm_oceanbreeze.png" />
+    <bitmap id="recovery_forestwalk" filename="recovery-fr255sm_forestwalk.png" />
+    <bitmap id="recovery_sunsetglow" filename="recovery-fr255sm_sunsetglow.png" />
+    <bitmap id="recovery_royalpurple" filename="recovery-fr255sm_royalpurple.png" />
+    <bitmap id="recovery_goldenhour" filename="recovery-fr255sm_goldenhour.png" />
+    <bitmap id="recovery_arctice" filename="recovery-fr255sm_arctice.png" />
+    <bitmap id="recovery_emeralddream" filename="recovery-fr255sm_emeralddream.png" />
+    <bitmap id="recovery_rubyfire" filename="recovery-fr255sm_rubyfire.png" />
+    <bitmap id="recovery_midnightsteel" filename="recovery-fr255sm_midnightsteel.png" />
+    <bitmap id="steps_oceanbreeze" filename="steps-fr255sm_oceanbreeze.png" />
+    <bitmap id="steps_forestwalk" filename="steps-fr255sm_forestwalk.png" />
+    <bitmap id="steps_sunsetglow" filename="steps-fr255sm_sunsetglow.png" />
+    <bitmap id="steps_royalpurple" filename="steps-fr255sm_royalpurple.png" />
+    <bitmap id="steps_goldenhour" filename="steps-fr255sm_goldenhour.png" />
+    <bitmap id="steps_arctice" filename="steps-fr255sm_arctice.png" />
+    <bitmap id="steps_emeralddream" filename="steps-fr255sm_emeralddream.png" />
+    <bitmap id="steps_rubyfire" filename="steps-fr255sm_rubyfire.png" />
+    <bitmap id="steps_midnightsteel" filename="steps-fr255sm_midnightsteel.png" />
+    <bitmap id="stress_oceanbreeze" filename="stress-fr255sm_oceanbreeze.png" />
+    <bitmap id="stress_forestwalk" filename="stress-fr255sm_forestwalk.png" />
+    <bitmap id="stress_sunsetglow" filename="stress-fr255sm_sunsetglow.png" />
+    <bitmap id="stress_royalpurple" filename="stress-fr255sm_royalpurple.png" />
+    <bitmap id="stress_goldenhour" filename="stress-fr255sm_goldenhour.png" />
+    <bitmap id="stress_arctice" filename="stress-fr255sm_arctice.png" />
+    <bitmap id="stress_emeralddream" filename="stress-fr255sm_emeralddream.png" />
+    <bitmap id="stress_rubyfire" filename="stress-fr255sm_rubyfire.png" />
+    <bitmap id="stress_midnightsteel" filename="stress-fr255sm_midnightsteel.png" />
+    <bitmap id="msg_oceanbreeze" filename="msg-fr255sm_oceanbreeze.png" />
+    <bitmap id="msg_forestwalk" filename="msg-fr255sm_forestwalk.png" />
+    <bitmap id="msg_sunsetglow" filename="msg-fr255sm_sunsetglow.png" />
+    <bitmap id="msg_royalpurple" filename="msg-fr255sm_royalpurple.png" />
+    <bitmap id="msg_goldenhour" filename="msg-fr255sm_goldenhour.png" />
+    <bitmap id="msg_arctice" filename="msg-fr255sm_arctice.png" />
+    <bitmap id="msg_emeralddream" filename="msg-fr255sm_emeralddream.png" />
+    <bitmap id="msg_rubyfire" filename="msg-fr255sm_rubyfire.png" />
+    <bitmap id="msg_midnightsteel" filename="msg-fr255sm_midnightsteel.png" />
+    
+    <!-- Themed UI Backgrounds -->
+    <bitmap id="ui_oceanbreeze" filename="ui-fr255sm_oceanbreeze.png" />
+    <bitmap id="ui_forestwalk" filename="ui-fr255sm_forestwalk.png" />
+    <bitmap id="ui_sunsetglow" filename="ui-fr255sm_sunsetglow.png" />
+    <bitmap id="ui_royalpurple" filename="ui-fr255sm_royalpurple.png" />
+    <bitmap id="ui_goldenhour" filename="ui-fr255sm_goldenhour.png" />
+    <bitmap id="ui_arctice" filename="ui-fr255sm_arctice.png" />
+    <bitmap id="ui_emeralddream" filename="ui-fr255sm_emeralddream.png" />
+    <bitmap id="ui_rubyfire" filename="ui-fr255sm_rubyfire.png" />
+    <bitmap id="ui_midnightsteel" filename="ui-fr255sm_midnightsteel.png" />
 </drawables>

@@ -11,6 +11,9 @@ using Toybox.Weather as Weather;
 using Toybox.SensorHistory as SensorHistory;
 using Toybox.Application as App; 
 using Toybox.Lang;
+using Toybox.Application;
+using Toybox.Application.Properties;
+using Toybox.Application.Storage;
 
 class LallassuWatchFaceView extends Ui.WatchFace {
     private const timeColor = 0xFFFFFF;
@@ -32,6 +35,13 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     private var msgIcon;
     private var iconScale = 0.5;
     private var ui;
+
+    // Configurable colors - can be set individually or via theme presets
+    private var backgroundColor = Gfx.COLOR_BLACK;
+    private var iconTintColor = Gfx.COLOR_WHITE;
+    private var uiTintColor = Gfx.COLOR_WHITE;
+    private var textDefaultColor = Gfx.COLOR_WHITE;
+    private var currentTheme = 0; // Current theme index (0-9)
 
     // These are only fetched periodically, to reduce load
     private var batteryTxt = "";
@@ -131,6 +141,156 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         setWeatherTxt();
         setNotification();
 
+        WatchFace.initialize();
+        loadSettings();
+        loadResources();
+    }
+
+    // Load theme settings from storage
+    private function loadSettings() as Void {
+        // Read from Storage (runtime changes) with fallback to default
+        var themeValue = Storage.getValue("Theme");
+        if (themeValue == null) {
+            // Don't read from Properties, just use default
+            themeValue = 0;
+        }
+        
+        // Apply theme preset (sets all colors)
+        currentTheme = themeValue;
+        applyTheme(themeValue);
+        
+        // Check for individual color overrides (these override theme settings)
+        var bgColorValue = Storage.getValue("BackgroundColor");
+        if (bgColorValue != null) {
+            backgroundColor = getColorFromIndex(bgColorValue);
+        }
+        
+        var iconColorValue = Storage.getValue("IconColor");
+        if (iconColorValue != null) {
+            iconTintColor = getColorFromIndex(iconColorValue);
+        }
+        
+        var uiColorValue = Storage.getValue("UIColor");
+        if (uiColorValue != null) {
+            uiTintColor = getColorFromIndex(uiColorValue);
+        }
+        
+        var textColorValue = Storage.getValue("TextColor");
+        if (textColorValue != null) {
+            textDefaultColor = getColorFromIndex(textColorValue);
+        }
+    }
+    
+    private function applyTheme(index) as Void {
+        if (index == null) { index = 0; }
+        
+        switch (index) {
+            case 1: // Arctic Neon - Bright cyan theme
+                backgroundColor = 0x001F3F;  // Deep navy
+                uiTintColor = 0x0074D9;      // Bright blue
+                iconTintColor = 0x00FFFF;    // Cyan
+                textDefaultColor = 0xFFFFFF; // White
+                break;
+                
+            case 2: // Solar Flare - Bright orange/yellow theme
+                backgroundColor = 0x4A2511;  // Dark brown
+                uiTintColor = 0xFF851B;      // Bright orange
+                iconTintColor = 0xFFDC00;    // Bright yellow
+                textDefaultColor = 0xFFFFFF; // White
+                break;
+                
+            case 3: // Ocean Wave - Bright aqua theme
+                backgroundColor = 0x003366;  // Deep blue
+                uiTintColor = 0x0099CC;      // Medium cyan
+                iconTintColor = 0x00FFCC;    // Bright aqua
+                textDefaultColor = 0xFFFFFF; // White
+                break;
+                
+            case 4: // Fire Red - Bold red theme
+                backgroundColor = 0x330000;  // Dark red
+                uiTintColor = 0xCC0000;      // Bright red
+                iconTintColor = 0xFF6600;    // Orange-red
+                textDefaultColor = 0xFFFFFF; // White
+                break;
+                
+            case 5: // Lime Punch - Bright green theme
+                backgroundColor = 0x1A3300;  // Dark green
+                uiTintColor = 0x66CC00;      // Bright lime
+                iconTintColor = 0x99FF00;    // Neon lime
+                textDefaultColor = 0xFFFFFF; // White
+                break;
+                
+            case 6: // Electric Purple - Bold purple theme
+                backgroundColor = 0x2D1B4E;  // Deep purple
+                uiTintColor = 0x9933FF;      // Bright purple
+                iconTintColor = 0xCC66FF;    // Light purple
+                textDefaultColor = 0xFFFFFF; // White
+                break;
+                
+            case 7: // Sunset Gold - Warm orange theme
+                backgroundColor = 0x4D2600;  // Dark brown
+                uiTintColor = 0xFF9933;      // Gold
+                iconTintColor = 0xFFCC00;    // Bright gold
+                textDefaultColor = 0xFFFFFF; // White
+                break;
+                
+            case 8: // Mint Flash - Bright mint theme
+                backgroundColor = 0x003329;  // Dark teal
+                uiTintColor = 0x00CC99;      // Bright teal
+                iconTintColor = 0x00FFCC;    // Bright mint
+                textDefaultColor = 0xFFFFFF; // White
+                break;
+                
+            case 9: // Hot Pink - Bold magenta theme
+                backgroundColor = 0x4D0033;  // Dark magenta
+                uiTintColor = 0xFF0099;      // Hot pink
+                iconTintColor = 0xFF66CC;    // Light pink
+                textDefaultColor = 0xFFFFFF; // White
+                break;
+                
+            default: // Default - Classic black & white
+                backgroundColor = Gfx.COLOR_BLACK;
+                uiTintColor = Gfx.COLOR_WHITE;
+                iconTintColor = Gfx.COLOR_WHITE;
+                textDefaultColor = Gfx.COLOR_WHITE;
+                break;
+        }
+    }
+    
+    private function getColorFromIndex(index) as Lang.Number {
+        if (index == null) { index = 0; }
+        
+        var colors = [
+            Gfx.COLOR_WHITE,      // 0 - White
+            Gfx.COLOR_BLACK,      // 1 - Black
+            Gfx.COLOR_LT_GRAY,    // 2 - Light Gray
+            Gfx.COLOR_DK_GRAY,    // 3 - Dark Gray
+            Gfx.COLOR_RED,        // 4 - Red
+            0xFF6B9D,             // 5 - Pink
+            0xE65100,             // 6 - Orange
+            0xFFC400,             // 7 - Gold/Amber
+            0xFFD54F,             // 8 - Yellow
+            0x76FF03,             // 9 - Lime Green
+            0x1B5E20,             // 10 - Dark Green
+            0xC5E1A5,             // 11 - Light Green
+            0x00E5FF,             // 12 - Cyan
+            0x1A237E,             // 13 - Dark Blue
+            0x80DEEA,             // 14 - Light Blue
+            0x4A148C,             // 15 - Purple
+            0xE040FB,             // 16 - Violet
+            0x8B0000,             // 17 - Dark Red
+            0x004D40,             // 18 - Teal
+            0x64FFDA              // 19 - Mint
+        ];
+        
+        if (index >= 0 && index < colors.size()) {
+            return colors[index];
+        }
+        return Gfx.COLOR_WHITE;
+    }
+
+    // Load colored resources based on theme
+    private function loadResources() as Void {
         batteryIcon = App.loadResource(Rez.Drawables.battery);
         caloriesIcon = App.loadResource(Rez.Drawables.calories);
         heartIcon = App.loadResource(Rez.Drawables.heart);
@@ -139,9 +299,15 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         stepsIcon = App.loadResource(Rez.Drawables.steps);
         stressIcon = App.loadResource(Rez.Drawables.stress);
         msgIcon = App.loadResource(Rez.Drawables.msg);
+        
         ui = App.loadResource(Rez.Drawables.ui);
+    }
 
-        WatchFace.initialize();
+
+    function onSettingsChanged() as Void {
+        loadSettings();
+        loadResources();
+        Ui.requestUpdate();
     }
 
     function onLayout(dc as Gfx.Dc) as Void {
@@ -166,12 +332,17 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     }
 
     function onShow() as Void {
+        loadSettings();
+        Ui.requestUpdate();
     }
 
     function drawIcon(dc as Gfx.Dc, icon as App.ResourceType, x as Lang.Number, y as Lang.Number, scale as Lang.Number) as Void {
+        // Set icon tint color based on theme
+        dc.setColor(iconTintColor, Gfx.COLOR_TRANSPARENT);
+        
         var t = new Gfx.AffineTransform();
         t.scale(scale, scale);
-        dc.drawBitmap2(x, y, icon, {:transform => t});
+        dc.drawBitmap2(x, y, icon, {:transform => t, :tintColor => iconTintColor});
     }
 
     // Helper function to scale coordinates based on screen size
@@ -200,9 +371,12 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         }
         setHeartTxt();
 
+        // Draw background color first
+        dc.setColor(backgroundColor, backgroundColor);
+        dc.fillRectangle(0, 0, width, height);
 
-        //var t = new Gfx.AffineTransform();
-        dc.drawBitmap(0,0, ui); //, {:transform => t});
+        // Draw UI overlay with tint color (transparent areas show background)
+        dc.drawBitmap2(0, 0, ui, {:tintColor => uiTintColor});
         
         // Battery - percentage text needs to be 1 pixel higher on sm
         //var batteryYOffset = isFr255sm ? s(7) - 2 : s(7);
@@ -212,9 +386,9 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         
         // Date - push up 1 pixel on sm version
         var dateYOffset = isFr255sm ? height-s(25) - 2 : height-s(25);
-        draw(dc, centerX, dateYOffset, Gfx.TEXT_JUSTIFY_CENTER, dateTxt, dateColor, Gfx.FONT_XTINY);
+        draw(dc, centerX, dateYOffset, Gfx.TEXT_JUSTIFY_CENTER, dateTxt, textDefaultColor, Gfx.FONT_XTINY);
         
-        draw(dc, centerX, s(213), Gfx.TEXT_JUSTIFY_CENTER, weatherTxt, weatherColor, Gfx.FONT_XTINY);
+        draw(dc, centerX, s(213), Gfx.TEXT_JUSTIFY_CENTER, weatherTxt, textDefaultColor, Gfx.FONT_XTINY);
 
         // Draws 2 columns with icons in the middle and values on the left or right 
         // and with same distance between each row.
@@ -320,24 +494,24 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         // Draw main time (HH:MM) - large font
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
         dc.drawText(centerX-s(47), y-s(3), Gfx.FONT_NUMBER_HOT, hourString, Gfx.TEXT_JUSTIFY_CENTER);
-        dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
+        dc.setColor(textDefaultColor, Gfx.COLOR_TRANSPARENT);
         dc.drawText(centerX-s(45), y, Gfx.FONT_NUMBER_HOT, hourString, Gfx.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
         dc.drawText(centerX-s(2), y+s(22), Gfx.FONT_LARGE, ":", Gfx.TEXT_JUSTIFY_CENTER);
-        dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
+        dc.setColor(textDefaultColor, Gfx.COLOR_TRANSPARENT);
         dc.drawText(centerX, y+s(25), Gfx.FONT_LARGE, ":", Gfx.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
         dc.drawText(centerX+s(45), y-s(3), Gfx.FONT_NUMBER_HOT, minutString, Gfx.TEXT_JUSTIFY_CENTER);
-        dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
+        dc.setColor(textDefaultColor, Gfx.COLOR_TRANSPARENT);
         dc.drawText(centerX+s(47), y, Gfx.FONT_NUMBER_HOT, minutString, Gfx.TEXT_JUSTIFY_CENTER);
 
         // Draw seconds below time (always show, but update respects battery settings)
         var secondsStr = seconds.format("%02d");
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
         dc.drawText(x+s(165), y+s(45), Gfx.FONT_TINY, secondsStr, Gfx.TEXT_JUSTIFY_CENTER);
-        dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
+        dc.setColor(textDefaultColor, Gfx.COLOR_TRANSPARENT);
         dc.drawText(x+s(167), y+s(48), Gfx.FONT_TINY, secondsStr, Gfx.TEXT_JUSTIFY_CENTER);
 
 
@@ -346,7 +520,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         var dayYOffset = isFr255sm ? 1 : 0;
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
         dc.drawText(s(35), y+s(58)+dayYOffset, Gfx.FONT_XTINY, info.day_of_week, Gfx.TEXT_JUSTIFY_CENTER);
-        dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
+        dc.setColor(textDefaultColor, Gfx.COLOR_TRANSPARENT);
         dc.drawText(s(33), y+s(55)+dayYOffset, Gfx.FONT_XTINY, info.day_of_week, Gfx.TEXT_JUSTIFY_CENTER);
 
 
@@ -365,7 +539,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         var weekStr = "w" + weekNumber.toString();
         dc.setColor(0x000000, Gfx.COLOR_TRANSPARENT);
         dc.drawText(s(37), y+s(45), Gfx.FONT_XTINY, weekStr, Gfx.TEXT_JUSTIFY_CENTER);
-        dc.setColor(timeColor, Gfx.COLOR_TRANSPARENT);
+        dc.setColor(textDefaultColor, Gfx.COLOR_TRANSPARENT);
         dc.drawText(s(35), y+s(42), Gfx.FONT_XTINY, weekStr, Gfx.TEXT_JUSTIFY_CENTER);
     }
 

@@ -1,7 +1,10 @@
 using Toybox.Application as App;
 using Toybox.WatchUi as Ui;
+using Toybox.Application.Properties;
 
 class LallassuWatchFaceApp extends App.AppBase {
+
+    private var view;
 
     function initialize() {
         AppBase.initialize();
@@ -14,7 +17,18 @@ class LallassuWatchFaceApp extends App.AppBase {
     }
 
     function getInitialView() {
-        return [ new LallassuWatchFaceView() ];
+        view = new LallassuWatchFaceView();
+        return [ view ];
+    }
+
+    function onSettingsChanged() {
+        if (view != null) {
+            view.onSettingsChanged();
+        }
+    }
+
+    function getSettingsView() {
+        return [new SettingsMenu(), new SettingsMenuDelegate()];
     }
 
 }
