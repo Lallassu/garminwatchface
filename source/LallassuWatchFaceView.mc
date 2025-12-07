@@ -16,13 +16,11 @@ using Toybox.Application.Properties;
 using Toybox.Application.Storage;
 
 class LallassuWatchFaceView extends Ui.WatchFace {
-    private const timeColor = 0xFFFFFF;
     private const WEATHER_INFO = {} as Lang.Dictionary;
 
     private var width = 0;
     private var height = 0;
     private var centerX = 0; 
-    private var centerY = 0;
     private var scale = 1.0; // Scale factor for layout (1.0 for 260x260, ~0.838 for 218x218)
     private var isFr255sm = false; // Track if we're on the smaller screen
     private var batteryIcon;
@@ -33,7 +31,6 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     private var stepsIcon;
     private var stressIcon;
     private var msgIcon;
-    private var iconScale = 0.5;
     private var ui;
 
     // Configurable colors - can be set individually or via theme presets
@@ -41,10 +38,8 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     private var iconTintColor = Gfx.COLOR_WHITE;
     private var uiTintColor = Gfx.COLOR_WHITE;
     private var textDefaultColor = Gfx.COLOR_WHITE;
-    private var currentTheme = 0; // Current theme index (0-9)
 
     // These are only fetched periodically, to reduce load
-    private var batteryTxt = "";
     private var dateTxt = "";
     private var weatherTxt = "";
     private var stressTxt = "";
@@ -64,11 +59,9 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     private var tempColor = Gfx.COLOR_WHITE;
     private var windColor = Gfx.COLOR_WHITE;
     private var bodyBatteryColor = Gfx.COLOR_WHITE;
-    private var weatherColor = Gfx.COLOR_WHITE;
     private var stepsColor = Gfx.COLOR_WHITE;
     private var heartColor = Gfx.COLOR_WHITE;
     private var distColor = Gfx.COLOR_WHITE;
-    private var dateColor = Gfx.COLOR_WHITE;
     private var sunColor = Gfx.COLOR_WHITE;
 
     function initialize() {
@@ -156,7 +149,6 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         }
         
         // Apply theme preset (sets all colors)
-        currentTheme = themeValue;
         applyTheme(themeValue);
         
         // Check for individual color overrides (these override theme settings)
@@ -321,7 +313,6 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         width = dc.getWidth();
         height = dc.getHeight();
         centerX = width / 2;
-        centerY = height / 2;
         // Calculate scale factor based on screen width (260 is the base size for fr255m)
         scale = width / 260.0;
         isFr255sm = (width == 218);
