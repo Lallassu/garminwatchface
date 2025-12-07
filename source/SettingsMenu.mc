@@ -10,6 +10,7 @@ class SettingsMenu extends Ui.Menu2 {
     }
 
     function addItems() {
+        // Theme preset selector
         var themeValue = Storage.getValue("Theme");
         if (themeValue == null) { themeValue = 0; }
         
@@ -22,6 +23,7 @@ class SettingsMenu extends Ui.Menu2 {
             )
         );
         
+        // Background Color selector
         var bgColorValue = Storage.getValue("BackgroundColor");
         Menu2.addItem(
             new Ui.MenuItem(
@@ -32,6 +34,7 @@ class SettingsMenu extends Ui.Menu2 {
             )
         );
         
+        // Icon Color selector
         var iconColorValue = Storage.getValue("IconColor");
         Menu2.addItem(
             new Ui.MenuItem(
@@ -42,6 +45,7 @@ class SettingsMenu extends Ui.Menu2 {
             )
         );
         
+        // UI Color selector
         var uiColorValue = Storage.getValue("UIColor");
         Menu2.addItem(
             new Ui.MenuItem(
@@ -52,6 +56,7 @@ class SettingsMenu extends Ui.Menu2 {
             )
         );
         
+        // Text Color selector
         var textColorValue = Storage.getValue("TextColor");
         Menu2.addItem(
             new Ui.MenuItem(
@@ -130,6 +135,7 @@ class SettingsMenuDelegate extends Ui.Menu2InputDelegate {
     hidden function cycleSetting(item, fieldId) {
         var menu = new SettingsMenu();
         
+        // Handle Theme - cycles and clears individual color overrides
         if (fieldId.equals("Theme")) {
             var currentValue = Storage.getValue(fieldId);
             if (currentValue == null) { currentValue = 0; }
@@ -137,22 +143,29 @@ class SettingsMenuDelegate extends Ui.Menu2InputDelegate {
             var nextValue = (currentValue + 1) % 10;  // 10 themes (0-9)
             var subLabel = menu.getThemeName(nextValue);
             
+            // Save theme
             Storage.setValue(fieldId, nextValue);
             
+            // Clear individual color overrides when theme changes
             Storage.deleteValue("BackgroundColor");
             Storage.deleteValue("IconColor");
             Storage.deleteValue("UIColor");
             Storage.deleteValue("TextColor");
             
             item.setSubLabel(subLabel);
-        } else if (fieldId.equals("BackgroundColor") || fieldId.equals("IconColor") || 
+        }
+        // Handle individual color settings - these can override theme
+        else if (fieldId.equals("BackgroundColor") || fieldId.equals("IconColor") || 
                  fieldId.equals("UIColor") || fieldId.equals("TextColor")) {
             var currentValue = Storage.getValue(fieldId);
             
+            // If null (using theme value), start from color 0
+            // Otherwise cycle through 20 colors, then back to null (From Theme)
             if (currentValue == null) {
                 Storage.setValue(fieldId, 0);
                 item.setSubLabel(menu.getColorName(0));
             } else if (currentValue >= 19) {
+                // After last color, go back to "From Theme" (delete override)
                 Storage.deleteValue(fieldId);
                 item.setSubLabel("From Theme");
             } else {
@@ -161,6 +174,8 @@ class SettingsMenuDelegate extends Ui.Menu2InputDelegate {
                 item.setSubLabel(menu.getColorName(nextValue));
             }
         }
+        
+        // Notify watch face to reload - use WatchUi to request update
         Ui.requestUpdate();
     }
 }

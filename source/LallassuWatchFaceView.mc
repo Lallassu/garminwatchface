@@ -181,6 +181,9 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         }
     }
     
+    // Apply complete theme with background, icon tint, UI tint, and text colors
+    // Themes are presets that set all 4 color settings at once
+    // Individual colors can be overridden after theme is applied
     private function applyTheme(index) as Void {
         if (index == null) { index = 0; }
         
@@ -257,6 +260,8 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         }
     }
     
+    // Color palette for individual color settings (used by all 4 color options)
+    // Supports 20 colors including both light and dark options
     private function getColorFromIndex(index) as Lang.Number {
         if (index == null) { index = 0; }
         
@@ -291,6 +296,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
 
     // Load colored resources based on theme
     private function loadResources() as Void {
+        // Load original icons (all themes use same icons, tinted at draw time)
         batteryIcon = App.loadResource(Rez.Drawables.battery);
         caloriesIcon = App.loadResource(Rez.Drawables.calories);
         heartIcon = App.loadResource(Rez.Drawables.heart);
@@ -300,6 +306,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         stressIcon = App.loadResource(Rez.Drawables.stress);
         msgIcon = App.loadResource(Rez.Drawables.msg);
         
+        // Load original UI background (same for all themes, transparency allows background color to show)
         ui = App.loadResource(Rez.Drawables.ui);
     }
 
@@ -332,6 +339,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
     }
 
     function onShow() as Void {
+        // Reload settings when returning from settings menu
         loadSettings();
         Ui.requestUpdate();
     }
@@ -341,7 +349,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         dc.setColor(iconTintColor, Gfx.COLOR_TRANSPARENT);
         
         var t = new Gfx.AffineTransform();
-        t.scale(scale, scale);
+        t.scale(scale.toFloat(), scale.toFloat());
         dc.drawBitmap2(x, y, icon, {:transform => t, :tintColor => iconTintColor});
     }
 
@@ -684,7 +692,7 @@ class LallassuWatchFaceView extends Ui.WatchFace {
         var actInfo = Act.getInfo();
         var curCalories = actInfo.calories;
 
-        if (profile.gender == profile.GENDER_MALE) {
+        if (profile.gender == UserProfile.GENDER_MALE) {
             restCalories = 5.2 - 6.116*age + 7.628*profile.height + 12.2*weight;
         } else {
             restCalories = -197.6 - 6.116*age + 7.628*profile.height + 12.2*weight;

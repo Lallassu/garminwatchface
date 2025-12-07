@@ -1,12 +1,12 @@
 project.manifest = manifest.xml
 
 # default paths
-sourcePath    = source
-resourcePath  = resources
+base.sourcePath    = source
+base.resourcePath  = resources
 
-# per-device resource paths
-fr255m.resourcePath  = resources-fr255m
-fr255sm.resourcePath = resources-fr255sm
+# per-device resource paths (base resources first, then device-specific overrides)
+fr255m.resourcePath  = resources;resources-fr255m
+fr255sm.resourcePath = resources;resources-fr255sm
 
 # optional compiler settings
 # optimization = on

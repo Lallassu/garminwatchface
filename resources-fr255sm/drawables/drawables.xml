@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <drawables>
-    <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
-    
-    <!-- Original icons - used for all themes with runtime tinting -->
-    <bitmap id="battery" filename="battery.png" />
-    <bitmap id="calories" filename="calories.png" />
-    <bitmap id="heart" filename="heart.png" />
-    <bitmap id="km" filename="km.png" />
-    <bitmap id="recovery" filename="recovery.png" />
-    <bitmap id="steps" filename="steps.png" />
-    <bitmap id="stress" filename="stress.png" />
-    <bitmap id="msg" filename="msg.png" />
-    
-    <!-- Transparent UI overlay - used for all themes with backgroundColor underneath -->
-    <bitmap id="ui" filename="ui-fr255sm.png" />
+    <bitmap id="ui" filename="ui.png" />
 </drawables>
-
