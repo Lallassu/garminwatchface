@@ -27,7 +27,7 @@ echo "Using SDK version: $(monkeyc --version)"
 rm -f bin/YourProject.iq 2>/dev/null || true
 
 # Build the IQ package
-echo "Building IQ package for fr255m and fr255sm..."
+echo "Building IQ package..."
 monkeyc -e -w -r \
   -o bin/YourProject.iq \
   -y /home/ciq/.Garmin/ConnectIQ/developer.der \

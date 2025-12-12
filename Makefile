@@ -33,3 +33,12 @@ fr255sm:
 .PHONY: fr255sm-debug
 fr255sm-debug:
 	$(MAKE) run-debug CIQ_DEVICE=fr255sm
+
+.PHONY: fr255
+fr255:
+	$(MAKE) run-release CIQ_DEVICE=fr255
+
+.PHONY: fr255s
+fr255s:
+	$(MAKE) run-release CIQ_DEVICE=fr255s
+

@@ -6,7 +6,9 @@ base.resourcePath  = resources
 
 # per-device resource paths (base resources first, then device-specific overrides)
 fr255m.resourcePath  = resources;resources-fr255m
+fr255.resourcePath  = resources;resources-fr255m
 fr255sm.resourcePath = resources;resources-fr255sm
+fr255s.resourcePath = resources;resources-fr255sm
 
 # optional compiler settings
 # optimization = on
